@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# DEPENDS: socat
+
+build_post_request() {
+
+[[ -z "$1" ]] && echo "Must specify URI" && exit 1
+[[ -z "$2" ]] && echo "Must specify POST parameters" && exit 1
+
+local URI="$1"
+local POST_PARAMETERS="$2"
+local CONTENT_LENGTH="$(echo -n "$POST_PARAMETERS" | wc -c)"
+
+# Note: In the POST request to bitly,
+# the X-XSRFToken header and the _xsrf cookie can be any hex value
+# as long as they match. Not sure what they think they're accomplishing
+# with that, but it sure is funny.
+
+# Regex makes sure we're using \r\n for linebreaks.
+sed -rz -e 's@\n@\r\n@g' << EOF
+POST ${URI} HTTP/1.1
+Host: bitly.com
+User-Agent: 肏你媽/1.0
+Accept: */*
+X-XSRFToken: WhatsThePointOfThisTokenSystemExactly?
+Cookie: _xsrf=WhatsThePointOfThisTokenSystemExactly?
+Content-Length: ${CONTENT_LENGTH}
+Content-Type: application/x-www-form-urlencoded
+
+${POST_PARAMETERS}
+EOF
+
+}
+
+if [[ -z "$1" ]]; then
+    echo "USAGE: $(basename $0) [url-to-shorten]" &&
+    exit 1
+fi
+
+URL="$1"
+POST_URL='/data/shorten'
+POST_PARAMS="url=${URL}"
+
+# This works, but hangs.
+# (build_post_request "$URL" "$PARAMS"; cat) | openssl s_client -connect bitly.com:443
+
+# This works too, but it's a kludge
+# build_post_request "$URL" "$PARAMS" | openssl s_client -ign_eof -connect bitly.com:443 2>/dev/null | grep -m 1 status_code &
+# sleep 1 && killall openssl && exit 0
+
+# Perfect :)
+build_post_request "$POST_URL" "$POST_PARAMS" \
+    | socat - OPENSSL:bitly.com:443 \
+    | tail -n 1 \
+    | grep -Po '(?<="url": ")[^"]+'
+
