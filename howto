@@ -1,0 +1,837 @@
+#!/bin/bash
+
+# DEPENDS: pcregrep
+
+# A self-grepping script / data file for quickly
+# remembering how to do a bunch of different little things.
+# Note: this script contains helpful stuff mixed in
+# with totally mundane unnecessary things from back when I was
+# first learning the basic linux utilities.
+# Viewer discretion is advised.
+
+source ~/.bashrc
+
+cattail_self() {
+    cat "$0" | pcregrep -M '^#{10,}\n(.|\n)*' | tail -n +3
+}
+
+if [[ -z "$1" ]]; then
+    cattail_self
+    exit 0
+fi
+
+# Otherwise:
+cattail_self | grep --color=auto -Pi "$@"
+
+# Don't remove this line or god knows what madness might happen, lol.
+exit 0
+
+############################################
+
+# Get memory info
+free -m
+
+# Get cpu info
+cat /proc/cpuinfo
+
+# Send a message to stderr (stdout shown for completeness, though not needed) and remove either
+(echo stdout >&1 && echo stderr >&2) 1> /dev/null
+(echo stdout >&1 && echo stderr >&2) 2> /dev/null
+
+# Aircrack-ng how to
+sudo airmon-ng start ${WDEV}
+sudo airodump-ng -w dump [mon0|${WDEV}mon]    # The latter seems to be the new way
+aircrack-ng -w <dict> [-b <router-mac>] <hs.cap>
+
+# Recursive shred
+find <dir> -type f -exec shred {} ';'
+
+# Recursive shred and remove
+find <dir> -type f -exec shred -zu {} ';' && srm -r <dir>
+
+# Find all files in /etc whose contents contain the term nano
+sudo find /etc -type f -exec grep --color=auto nano {} ';' -a -printf \"%p\n\n\"
+
+# Search the filesystem journal for a string
+sudo strings /var/log/journal/*/* | grep miscellaneous
+
+# Look for long-lost filenames in the swap partition
+SWAP=/dev/$(lsblk | grep SWAP | strings | awk '{ print $1 }')
+sudo strings "$SWAP" | grep -Ei '[.](mp4|webm|flv|avi|mpg|wmv|mkv|mpeg|jpg|jpeg|png|bmp|gif)'
+
+# Shred swap space
+SWAP=/dev/$(lsblk | grep SWAP | strings | awk '{ print $1 }')
+sudo sswap -fllvz "$SWAP"
+
+# Bypass 403s by changing wget's user agent
+wget -U "Mozilla/5.0 (Windows NT 5.1; rv:10.0.2) Gecko/20100101 Firefox/10.0.2"
+
+# Fix your garbled VTEs after catting a binary. Both of these work.
+reset
+echo ^V^O
+
+# TCPdump, showing headers, in both binary and ascii
+sudo tcpdump -i any -XXvvnns0 icmp
+sudo tcpdump -i any -X src 192.168.0.2
+# TCPdump, just web, in ascii
+sudo tcpdump -i any -A -l 'host Shannon and tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)'
+
+# Discover and fingerprint hosts on the local network using ARP
+sudo arp-scan -I ${WDEV} 192.168.0.0/24
+
+# Enable ip forwarding in the kernel
+sudo sysctl -w net.ipv4.conf.${WDEV}.forwarding=1
+
+# Add an existing user to an existing group
+sudo usermod -a -G <group> <user>
+
+# Overwrite all free-space on a drive. Run su before this.
+SWAP=/dev/$(lsblk | grep SWAP | strings | awk '{ print $1 }')
+mkdir fill && cd fill && sfill -fllvz . && cd .. && rm -r fill && sswap -fllvz "$SWAP" && exit
+
+# Copy all the jpegs under a directory into a given folder
+find -type f -name "*.[jJ][pP][gG]" -exec cp "{}" "$HOME/Desktop/jpg/" ";"
+
+# Find all the ip addresses in a file (e.g., source code)
+grep -Eo '([012][[:digit:]]{0,2}\.){3}[012][[:digit:]]{0,2}' <file>
+
+# Boolean grepping by using the "-e" option, without using -E "(one|two|three)"
+# Compare to man grep | grep quiet
+man grep | grep -e quiet -e silent
+
+# Use john to generate a mangled wordlist from an existing wordlist
+john --wordlist=mydict --stdout --rules > mybigdict
+
+# Build a new path through the tor network and get its public IP
+for num in {1..5}; do sudo systemctl restart tor && geoip $(torsocks wget -q -O - icanhazip.com) && echo; done
+
+# We can pipe code into the interpreters for various scripting languages
+echo -e "import os\nos.system('"'"cowsay It worked"'"')" | python
+
+# Run ngrep and search for cdn links
+sudo ngrep -d any -W byline -qq -n 1 'cdn.*(mp4|flv)' | grep -Eo 'http.*cdn[^\"]*(mp4|flv)[^\"]*'
+sudo ngrep -d any -W byline -qq -n 1 '\.(mp4|flv|avi|wmv)'
+
+# Make ncurses message boxes in shell scripts! See man dialog for more!
+dialog --msgbox "Hi there" 50 50
+
+# Using fgrep is equivalent to grep -F, which searches for fixed strings to avoid collision or endless escaping
+echo -e 'cake\naaa.*aaa\npie' | grep '.*'
+echo -e 'cake\naaa.*aaa\npie' | grep -F '.*'
+
+# Geoip lookup
+geoiplookup $(wget -q -O - icanhazip.com)
+
+# Get key codes (Run from VTE, for some reason)
+getkeycodes
+
+# Search processes and pids with pgrep
+pgrep -l '.*'
+
+# Expand metacharacters
+lessecho *
+
+# Crazy terminal fuckery. First set i=0.
+((i++)) && ((i++)) && tput cup $i 60
+
+# Bash has the ? operator like C
+a=7 && b=9 && ((max = (a >= b) ? a : b)) && echo $max
+
+# Dictionaries in bash
+declare -A a && a=([key1]=value1 [key2]=value2) && echo ${a[@]} && echo ${a[key1]} && echo ${#a[@]} && echo ${#a[key1]}
+
+# Substring removal from strings
+a="this is some text" && echo ${a% *}
+a="this is some text" && echo ${a#* }
+a="this is some text" && echo ${a%% *}
+a="this is some text" && echo ${a##* }
+
+# Substring removal from arrays
+array=(This is some text) && echo "${array[@]%is}"
+array=("This is" some text) && echo "${array[@]%is}"
+array=(This is some text) && echo "${array[@]#[tT]}"
+array=(This is some text) && array=("${array[@]#[tT]}") && echo ${array[@]%is}
+
+# Search and replace
+a="this is some text" && echo ${a/is/}
+a="this is some text" && echo ${a//is/}
+array=(this isis some text) && echo ${array[@]/is/}
+array=(this isis some text) && echo ${array[@]//is/}
+
+# Anchoring in search and replace
+MYSTRING=xxxxxxxxxx && echo ${MYSTRING/#x/y} && echo ${MYSTRING/%x/y}
+
+# Case Modification in strings and arrays. The ~ forms are undocumented
+a="THIS IS SOME TEXT" && echo ${a,} && echo ${a,,}
+array=(THIS IS SOME TEXT) && echo ${array[@],} && echo ${array[@],,}
+a="this is some text" && echo ${a^} && echo ${a^^}
+array=(this is some text) && echo ${array[@]^} && echo ${array[@]^^}
+a="This Is Some TExt" && echo ${a~} && echo ${a~~}
+array=(This Is Some TExt) && echo ${array[@]~} && echo ${array[@]~~}
+
+# Substring expansion
+a="cake and pie" && echo ${a:3:8} && echo ${a:2} && echo ${a:0:3} && echo ${a::3}
+
+# Show all variables that start with the letter P
+echo ${!P@} && echo ${!P*}
+
+# Print currently running kernel config to stdout
+zcat /proc/config.gz
+
+# Recover deleted files
+sudo foremost -v -t bmp,jpg,gif,png,mpg,mp4,wmv,avi -i /dev/sda5 -o /run/media/jason/Butter/recovered/
+
+# Mount my FreeBSD Partition
+sudo mount -r -t ufs -o ufstype=ufs2 /dev/sda4 /mnt/bsd/
+# Integrate it with nemo:
+dir=/run/media/jason/$(uuidfor sda4 | cut -f1 -d" ") && sudo mkdir -pv $dir && sudo mount -t ufs -o ufstype=ufs2 /dev/sda4 $dir
+
+# Disassemble a binary with objdump (from binutils)
+objdump -d <binary>
+
+# Sort on a given field, using a given delimiter. This sorts a csv file by field 3.
+cat <file> | sort -t ',' -k 3
+
+# Set up the mlocate database and keep it up to date
+pacman -S mlocate
+sudo updatedb
+
+# Make arbitrary playlists on the fly
+sudo updatedb && vlc $(locate --regex vids.*SEARCHTERM) &> /dev/null
+
+# Use tcc as a pseudo C-interpreter
+echo 'main(){puts("Hello world");}' | tcc -run -
+
+# Start a screen session computer A with:
+screen -S <nameofscreen>    # name can be anything
+# Then ssh into computer A from computer B, and join the screen:
+screen -x <nameofscreen>
+
+# Detect memory leaks in a C program. Also shows invalid reads and writes to memory.
+# See the valgrind files in my C directory for examples.
+valgrind --tool=memcheck --leak-check=yes ./<executable>
+
+# Super-secure delete with dd
+dd if=/dev/zero of=<drivepath> bs=1M
+
+# You need to use case syntax more, motherfucker!
+a=4 && case $a in 0|1) echo BOOM;; 2|3) echo BANG;; *) echo NOPE;;esac
+
+# You also need to use mathy-bracket syntax more!
+i=0 && (( i++ )) && echo cake
+i=0 && (( ++i )) && echo cake
+i=0 && (( ! ++i )) && echo cake
+
+# Use C-style for loops in bash
+for (( i=0; i<10; i++ )); do echo $i; done
+
+# Use C-style while loops in bash
+i=0 && while (( ++i < 10 )); do echo $i; done
+
+# Until loops are exactly like while, but with the test negated
+i=0 && until (( ++i == 10 )); do echo $(( i**2 )); done
+
+# Using C-style printf
+printf "one %s two %s\n" "feesh" "foosh"
+
+# Using shift
+func () { echo $2; shift; echo $2; } && func a b c d
+func () { while [[ -n $1 ]]; do echo $1 && shift; done } && func {1..9}
+func () { while [[ -n $1 ]]; do echo $1 && shift; done } && func fwing fwong fwang
+
+# Using associative arrays in bash
+declare -A X=([cake]=bad [pie]=good) && echo ${X[cake]} ${X[pie]}
+declare -A X=([succ]="xcowsay win" [fail]="cowsay fuck yoo")
+${X[succ]}
+${X[fail]}
+
+# Using the =~ comparison operator for regex comparison
+[[ cake =~ .*ak.* ]] && echo yes
+[[ cake =~ .*av.* ]] && echo yes
+
+# Using cron jobs. First start cron & open a crontab
+sudo systemctl start cronie
+crontab -e
+# In your crontab, you can place lines like this:
+*0,*5 9-16 * 1-5,9-12 1-5 /path/to/script
+# This runs script at 5 min intervals from 9:00am
+# to 4:55pm on weekdays, except during the Summer.
+# For Xorg applications, use this extra syntax:
+* * * * * xuserrun "I ran from cron, yo."
+# You can also just specify the display:
+* * * * * env DISPLAY=:0 xcowsay "I ran from cron, yo."
+# When you are done, you can stop cron
+sudo systemctl stop cronie
+
+# Bash allows for pointers... kinda. Here is an example of variable indirection
+var=value && ptr=var && echo ${!ptr}
+
+# Being silly: Type $(howto | grep -A 1 silly | tail -n 1) at a terminal for binary funs.
+echo -en '\x48\x65\x79\x20\x74\x68\x65\x72\x65\x20\x62\x61\x62\x79\x63\x61\x6b\x65\x73\x21\x0a'
+
+# Make a pretty graph of all packages installed on an Archlinux system
+pacgraph
+
+# Obtaining a list of currently loaded kernel modules in the format used by the kernel config ;)
+zcat /proc/config.gz > config
+lsmod | cut -f 1 -d " " | tr a-z A-Z > modules
+for line in $(cat modules); do grep -E "CONFIG_${line}=m" config >> mymodules; done
+
+# Writing to and reading from the framebuffer!!!
+# Go to a tty on which a gui is not running, and type the following.
+cat /dev/fb0 > screenshot
+# Then do some stuff to change what the screen lokos like (e.g., ls -l, etc.)
+cat screenshot > /dev/fb0
+# The previous state of the screen should be restored
+
+# Using systemd-coredumpctl: one of the many things systemd overcomplicates.
+systemd-coredumpctl   # Shows coredumps stored in the journal.
+systemd-coredumpctl dump 6738 -o filename
+systemd-coredumpctl dump a.out -o filename
+
+# Flush the TERRIBLE gpg-agent password cache (which lets me *easily* read my plaintext passwords from memory)
+kill -s SIGHUP $(pidof gpg-agent)
+# Completely disable the fucking thing.
+echo "max-cache-ttl 0" > ~/.gnupg/gpg-agent.conf
+
+# Force-kill a process, so that it dies even if it is completely unresponsive (all equivalent)
+kill -9 <pid>
+kill -SIGKILL <pid>
+kill -s SIGKILL <pid>
+
+# Pause execution of a process
+kill -STOP $(pidof gedit)
+# Continue execution of the process
+kill -CONT $(pidof gedit)
+
+# How to add Haiku or BSD to the Grub2 boot menu
+# Put this in 40_custom or some unused grub.d script.
+menuentry "Haiku" {
+    set root=(hd0,4)
+    chainloader +1
+}
+
+# Using ntp: The network time protocol
+pacman -S ntp     # To get the ntp client
+# Then set your clock to an incorrect time.
+sudo systemctl start ntpd
+# And the clock fixes itself. Baller! So, of course...
+sudo systemctl enable ntpd
+
+# Make your own ramdisk! (Can also just use /dev/shm)
+mkdir /mnt/ramdisk
+mount -t tmpfs -o size=512m tmpfs /mnt/ramdisk
+
+# Unix party tricks:
+# Multiple slashes are ignored
+cd ////////home////jason//////////
+# I can't believe I didn't know you could echo in reverse...
+echo >> boop "hey there baby"
+
+# Use gpg to verify a package using a gpg signature (from a gpg public key you have previously imported)
+gpg --verify tor-*.xz{.asc,}
+
+# Being a goof with gpg & netcat
+# On Shannon
+ncat -l | gpg > les
+# On Turing
+gpg --recipient letshaveanadventure@gmail.com --sign --output - --encrypt <file> | ncat 192.168.0.3
+# The file will be encrypted, transferred, decrypted, (and the signature verified)
+
+# Make ffmpegthumbnailer work with webm (or anything else)
+# Open /usr/share/thumbnailers/ffmpegthumbnailer.thumbnailer
+# Add a line for webm using the self-explanatory syntax of the file
+
+# Basic ettercap usage
+sudo ettercap -i ${WDEV} -T -M arp:remote /192.168.0.1/ /192.168.0.2/
+
+# Find exactly where something is on a drive or in a binary
+sudo strings -af -t x -n 10 /dev/sda12 | grep -Ei "stuff|otherstuff"
+# This will give you the offset. Suppose it turns out to be 13d8b90. Then...
+sudo hexdump -Cv -s 0x13d8b90 /dev/sda12 | head -n 10
+# You can see everything around it, and presumably write to it using the mmap syscall, followed by a sync
+
+# Make gcc comment the assembly it generates
+gcc -S -fverbose-asm c.c
+
+# View processes that are performing a lot of disk IO
+iotop
+
+# How to view logfiles with the giant fuckmonster that is systemd
+journalctl --all --no-pager /usr/bin/dbus-daemon
+journalctl --all --no-pager /usr/bin/tor
+
+# Limit the size of the systemd journal, and clear the journal
+# From https://wiki.archlinux.org/index.php/systemd
+# This may also prevent boot time from increasing over time, as described at the bottom of the above wiki page
+# Add "SystemMaxUse=50M", or whatever size you want, to /etc/systemd/journald.conf
+# Backup the entire directory /var/log/journal, at least to make sure it does not bork the system
+# Delete every file in /var/log/journal
+
+# Retry when srm fails with a "Too many open files" error
+status=1 && while [[ $status == 1 ]]; do srm -fllvz directory/*; status=$?; echo "Trying again"; done
+
+# Perform a reverse DNS lookup on a host
+ritx -t 23.21.179.138
+
+# How to merge a bunch of .cap files
+mergecap -a -F pcap *.cap -w all.cap
+
+# Holy fuck multiline grep... Note: pcregrep is required by *lots* of low-level packages, like "less," so it will be most everywhere
+pcregrep -M  'root(\n|.)*spool' /etc/passwd
+pcregrep -Mo 'root(\n|.)*spool' /etc/passwd
+
+# Multiline sed usage.
+# Note: The -r is unnecessary here, but it lets us use extended regexes.
+# The options cannot be combined into -irz, for some reason.
+# The -z option separates lines by null characters,
+# allowing us to use \n in the search-and-replace regex.
+sed -rz -i 's@ex\nFind@@g' FILE
+
+# How to make a hacky progress bar for a large dd job
+# Note: Set the range (here: 360 - 450) to be near where the writing currently is
+for i in $(seq 360 2 450); do printf "${i}G\t" && hexdump -Cv -s ${i}G /dev/sda5 | head -n 1; done
+
+# If cinnamon ever borks again, giving black wallpaper and fucked-up window-management on login, do this
+# It seems to have fixed the problem completely
+cd ~/.local/share/applications
+rm cinnamon*
+sudo systemctl restart lightdm
+
+# Remount an ext4 partition with different mount options
+sudo mount -o remount,defaults,noatime /dev/sda7 /
+sudo mount -o remount,defaults,noatime /dev/sda5 /home/
+
+# Say hello to our home printer, manually (arp-scan to get its IP, nmap to get its open ports)
+echo -e "HEAD / HTTP/1.0\r\n\r\n" | ncat 192.168.0.40 80
+echo -e "GET  / HTTP/1.0\r\n\r\n" | ncat 192.168.0.40 80
+echo -e "GET  /index.html HTTP/1.0\r\n\r\n" | ncat 192.168.0.40 80
+
+# Do a geoip lookup on every ip that has visited my website, after having downloaded the gzipped logs
+for ip in $(zcat *.gz | grep -Po "([\d]{1,3}\.){3}[\d]{1,3}" | sort | uniq); do geoip "$ip"; done
+
+# Holy balls this is neato. Open your own webcam in vlc
+vlc v4l2:///dev/video0
+
+# Interesting. The middle chunk of numbers from the default filename of facebook photos lets us find them again
+# e.g., for a filename 111_222_333_n.jpg, we can find the source by appending 222 to:
+${WEB} https://www.facebook.com/photo.php?fbid=
+
+# Piping into a printer (just like in the good old UNIX days)
+# Apparently lp is old BSD and lpr is new(er) SYSV, but both are now provided by CUPS
+# I was so excited when this command actually printed-out a pdf, in full color.
+# I love UNIX so much.
+cat myfile.pdf | lpr
+
+# Only read first N bytes from a file
+head -c N filename
+
+# Read the first N bytes from a drive and disassemble the code! :D
+# Example: Disassemble your first-stage bootloader (MBR)
+cat /dev/sda | head -c 512 | ndisasm -
+
+# Cat a file, starting at line 2 (or any N)
+tail -n +2 filename
+
+# Cat a file, starting at *byte* 2 (or any N)!
+tail -c +2 filename
+
+# Gedit Gedit environment variables and their values, from within a Gedit script
+for f in ${!GEDIT_@}; do printf "${f}\n${!f}\n\n"; done
+
+# Check out the directory where gedit keeps the scripts we add:
+ls ~/.config/gedit/tools/
+
+# Command substitution fun: Diff the output of two commands!
+diff <(cat CONSTANTLY) <(cat CONSTANTLY | grep -vi Allowed)
+
+# More command substitution. These two give the same output.
+printf "\xc9\xc3\xcf" | ndisasm -
+ndisasm <(printf "\xc9\xc3\xcf")
+
+# Remove those obnoxious copyright banners from a source code tree
+find . -type f -exec sed -i -z 's@/[*].*You should have received a copy.*USA[.\t ]*\n[\t ]*[*]/@@g' '{}' ';'
+
+# Getting a version of flashrom that can actually read your BIOS!
+# Have to git clone the fork of flashrom from chromium OS
+# This version will just fill ME-locked regions with 0xff, and show us the rest.
+# Thats more like it goddammit!
+git clone https://chromium.googlesource.com/chromiumos/third_party/flashrom
+cd flashrom && make
+# The build will fail on the first few tries, but the fixes are pretty obvious.
+# I just had to remove -Werror from the Makefile, and remove an #include of a nonexistent header
+# Once it builds, use ./flashrom -p internal -r bios.rom
+
+# Enable/disable thumbnailers in file manager
+# Open dconf-editor -> Search for thumbnailers -> Enable or disable all
+
+# Start VLC maximized(ish)
+# Go to: Tools >> Preferences >> (Select "All" for "Show settings") >> Interface >> Main interfaces >> Qt
+# Untick "Resize interface to the native video size" and save.
+
+# Watch dmesg output as it updates (Note: the "watch" command is really cool. How have I not used this before???)
+watch 'dmesg | tail -35'
+# Same deal, but with systemd. The -k option shows kernel messages, and -f updates it in real time.
+journalctl -kf -n 35
+# Less tidy version of the above:
+sudo cat /dev/kmsg
+
+# Where to get the linux kernel git tree from, in order to send patches, etc.
+# Development trees are here: http://git.kernel.org/pub/scm/linux/kernel/git/
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+
+# Change the ccache directory to a faster location than ~/.ccache
+export CCACHE_DIR=/<ramdisk-or-ssd>/ccache
+# For example, we can do this:
+mkdir /tmp/ccache && cp -rv ~/.ccache/* /tmp/ccache/ && export CCACHE_DIR=/tmp/ccache
+cd /usr/src/linux && make clean && time make -j8
+# It turns out that moving the cache to a ramdisk does not seem to help, so ~/.ccache is fine
+
+# Force the kernel to drop caches (mostly for experimentation, also must be root).
+# May not need to run sync first, but some sources suggest it.
+echo 1 > /proc/sys/vm/drop_caches     # frees pagecache
+echo 2 > /proc/sys/vm/drop_caches     # free cached dentries and inodes
+echo 3 > /proc/sys/vm/drop_caches     # frees both of the above
+
+# Use vlc from the framebuffer!!!
+vlc -I ncurses <video.mp4>
+
+# Change your xdg directories
+vim ~/.config/user-dirs.dirs
+
+# Rotate the screen using xrandr!
+xrandr --orientation 0
+xrandr --orientation 1
+xrandr --orientation 2
+xrandr --orientation 3
+
+# Change the maximum size of the ccache cache
+ccache -M 5G
+
+# Use systemd-cat to echo shit into the journal
+systemd-cat echo 'hey there babycakes'
+systemd-cat --identifier=yobitch echo 'hey there babycakes'
+
+# The tty keyboard shortcuts, configurable with /etc/inputrc || ~/.inputrc
+# <C-M-h>   bw-kill-word
+# <M-d>     fw-kill-word
+# <C-h>     bw-kill-letter
+# <C-d>     fw-kill-letter
+# <M-f>     fw-move-word
+# <M-b>     bw-move-word
+# <M-d>     fw-kill-letter
+# <C-u>     kill-to-beginning-of-line
+# <C-k>     kill-to-end-of-line
+# <C-y>     paste-your-kill-buffer
+# <C-a>     move-cursor-to-beginning-of-line
+# <C-e>     move-cursor-to-end-of-line
+# <M-u>     uppercase-next-word
+# <M-r>     revert recent changes on line, or something
+
+# Extract a subset of the pages in a pdf, and put them in another pdf
+# evince -> print -> print to file -> select the pages. That was easy.
+
+# Couldn't register with the accessibility bus [keywords:gtk,gnome,gedit]
+# In /etc/environment, add the line
+export NO_AT_BRIDGE=1
+
+# Read pdfs in a tty!
+less filename.pdf
+# Seems to be calling:
+pdftotext filename.pdf
+# Or even better:
+fbpdf filename.pdf
+
+# Get the functionality of ldd, even if we don't have it (e.g., in busybox)
+/lib64/ld-linux-x86-64.so.2 --list /bin/ls
+
+# Super helpful in understanding linking, loading, and shared libraries
+man ld.so
+man vdso
+
+# sln (part of glibc)
+# A statically linked version of ln, that can be used to make symlinks
+# to libraries if for some reason the dynamic linker is not working. Cool!
+
+# pldd (part of glibc)
+# Like ldd, but for running processes. Awesome!
+# UPDATE: 20161112-210143: pldd man page says its broken... probably forever... (lol)
+
+# Make and install linux kernel man pages
+pushd /usr/src/linux/ && make -j8 mandocs && mkdir -pv /usr/share/man/man9/ &&
+sudo cp -v Documentation/DocBook/man/*.9.gz /usr/share/man/man9/ && popd
+
+# Search all man pages for a string
+man -K <string>
+
+# Compile and install a perl module
+perl Makefile.PL && make && make test && sudo make install
+# Or you can just use cpan, e.g.,
+sudo cpan Term::Animation
+
+# Write some simple conky messages on the desktop
+conky -t "Don't look at the keyboard" -a top_left -x 15 -y 100
+
+# Quickly find all non-ascii (e.g., unicode proper) filenames
+diff <(find) <(find | strings)
+
+# This is completely retarded and I love it
+echo stuff|cat|(cat;fuck 2>/dev/null)|cat|cat&&p=(${PIPESTATUS[@]})&&for i in ${!p[@]};do echo "pipe $i: ${p[$i]/2/8}"; done
+
+# Get mimetype for a file
+file --mime-type -b <filename>
+
+# Make a ramdisk
+mkdir -p './ramdisk' && sudo mount -t tmpfs -o size=512m tmpfs './ramdisk'
+
+# Implement the which command using type
+type -f "$@" | sed -r "s@^[^ \t]+ is (a )?@@"
+
+# Use ffmpeg to make a movie from images :D (-r <num> gives the framerate!)
+ffmpeg -f image2 -r 24 -i image-%04d.jpg -vcodec mpeg4 -y ~/Desktop/movie.mp4
+
+# Grub EFI stuff
+sudo grub-mkconfig -o /boot/grub/grub.cfg && sudo grub-install --efi-directory=/boot/efi /dev/sda
+
+# Quickly see which firmware is being used and when.
+find /lib/firmware/ -exec stat -c '%x %n' '{}' ';' | sort | uniq | less
+
+# How to clip/crop audio files using ffmpeg
+ffmpeg -i input.mp3 -vcodec copy -acodec copy -ss 00:14:20 -t 00:01:31 output.mp3
+
+# How to use ssmtp to send mail from the command line.
+# Note: The "sudo" is important, since otherwise anyone could read the plaintext passwords in /etc/ssmtp/ssmtp.conf
+echo 'This is the message body' | sudo mail -s 'Testing' letshaveanadventure@gmail.com
+
+# How to set the VTE font sensibly large on hidpi screens where its fucked by default.
+# On Debian based distros: sudo dpkg-reconfigure console-setup
+# More generally:
+cat >> /etc/vconsole.conf << "EOF"
+# I added this.
+FONT=ter-232n
+EOF
+
+# Some nice linux OCR (optical character recognition) programs
+ocrad gocr tesseract
+# Other fun ocr related things
+ocrgui tesseract-gui ocrpdf 
+
+# Fun with steganography
+photocrypt 
+
+# Damn good linux speech to text, not from chrome app store
+git clone https://github.com/andre-luiz-dos-santos/speech-app
+
+# Tool for launching commands on keystrokes: x11-misc/xbindkeys
+# Check this out and see how it works.
+# Note: Running `xbindkeys -k` and typing Super+e gives the output:
+# m:0x40 + c:133
+# Mod4 + Super_L
+# This is potentially useful for figuring out which keys generate which keycodes.
+
+# Monitor network upload and download speed with nload
+nload $WDEV
+
+# base64 awesomeness:
+# cat an svg, pull out the base64 encoded part, and check what kind of file it is.
+cat image_shift.svg | grep -Po '[+/]{50,}' | base64 -d | file -
+# having learned from the above that it's a png, now redirect it to a file.
+cat image_shift.svg | grep -Po '[+/]{50,}' | base64 -d > boop.png
+# open the byte stream in eog using bash's "here strings"
+eog 2>/dev/null <<< cat image_shift.svg | grep -Po '[+/]{50,}' | base64 -d
+
+#############################################
+### Redirect stdout to multiple commands! ###
+#############################################
+# Only bash version. See below for more portable version.
+cat file.txt | tee >(mycommand) >(do_stuff) >(do_more_stuff) | grep errors
+## More concrete example
+cat /etc/hosts | tee >(grep -cq Turing && echo Turing >> myfile) >(grep -cq Shannon && echo Shannon >> myfile) | grep errors
+## I love this, lol
+>this && tee </etc/hosts >(grep Turing >> this) >(grep Shannon >> this) >/dev/null && cat this
+
+# This version works in any Posix shell
+# In any POSIX shell, you can use multiple file descriptors explicitly.
+# This requires a unix variant that supports /dev/fd,
+# since all but one of the outputs of tee must be specified by name.
+cat /etc/hosts | { { { tee /dev/fd/3 /dev/fd/4 | grep Shannon >&9;
+    } 3>&1 | grep Turing >&9;
+  } 4>&1 | grep Godel >&9;
+} 9>&1
+
+# The most basic and portable method is to use named pipes.
+# The downside is that you need to find a writable directory,
+# create the pipes, and clean up afterwards.
+do_stuff() {
+    t=$(mktemp -d)
+    mkfifo "$t/f1" "$t/f2"
+    grep Turing  <"$t/f1" & pid1=$!
+    grep Shannon <"$t/f2" & pid2=$!
+    cat /etc/hosts | tee "$t/f1" "$t/f2" >/dev/null
+    rm -r "$t"
+    wait $pid1 $pid2
+}
+do_stuff 2>/dev/null
+
+# How to use the GTK inspector interactive debugger thing from the command line.
+GTK_DEBUG=interactive gedit
+
+# How to enable the GTK inspector interactive debugger thing from dconf-editor.
+# /org/gtk/settings/debug/enable-inspector-keybinding > set to true.
+# Or just do this.
+dconf write /org/gtk/settings/debug/enable-inspector-keybinding 'true'
+# On gentoo I had to do this:
+gsettings set org.gtk.Settings.Debug enable-inspector-keybinding true
+
+# File containing a bunch of X11 color definitions.
+locate X11/rgb.txt
+
+# cscope and vim
+# 's'   symbol: find all references to the token under cursor             # cscope and vim
+# 'g'   global: find global definition(s) of the token under cursor       # cscope and vim
+# 'c'   calls:  find all calls to the function name under cursor          # cscope and vim
+# 't'   text:   find all instances of the text under cursor               # cscope and vim
+# 'e'   egrep:  egrep search for the word under cursor                    # cscope and vim
+# 'f'   file:   open the filename under cursor                            # cscope and vim
+# 'i'   includes: find files that include the filename under cursor       # cscope and vim
+# 'd'   called: find functions that function under cursor calls           # cscope and vim
+
+# Omg ntop... I can't believe never knew how to use this correctly.
+# After starting it, do this:
+http://localhost:3000
+# Or this:
+https://localhost:3001
+
+# gdb reverse debugging:
+# http://www.sourceware.org/gdb/wiki/ProcessRecord/Tutorial
+
+# How to use nmcli to connect to a wifi network from the command line
+nmcli device wifi connect <ssid>
+
+# printf tricks
+## assign the output to shell variable VAR rather than display it on the standard output
+printf -v blah 
+## %q quote the argument in a way that can be reused as shell input
+printf "%q" 'blah blah blah'
+
+# How to move dconf settings from one machine to another
+# To save the state of a path
+dconf dump /org/cinnamon/desktop/keybindings/ > org-cinnamon-desktop-keybindings
+# To load the state of a path
+dconf load /org/cinnamon/desktop/keybindings/ < org-cinnamon-desktop-keybindings
+# Now that's a damn sexy api-ish interface-y thing. ;)
+
+# Nice trick with readline / inputrc / bind: using bind -x to bind a key sequence to a command
+bind -x '"\C-l": ls'
+bind -x '"\C-l": clear'
+
+# Using cron
+emerge -av cronie
+sudo usermod -a -G cron jason
+# Make crontabs as root
+sudo crontab -e
+# Make crontabs as a regular user, once we're in the cron group.
+crontab -e
+# The basic cron syntax
+# min (0-59)    hour (0-23)     day (1-31)  month (1-12)    day of week (0-6, 0 is Sunday. So is 7.)
+# *0,*5         9-16            *           1-5,9-12        1-5
+# Examples:
+# Run a command every minut.
+# * * * * * env DISPLAY=:0 xcowsay "I ran from cron, yo. (UID: $UID, USER: $USER)"
+# Run a command every five minutes.
+# *0,*5 9-16 * 1-5,9-12 1-5 env DISPLAY=:0 xcowsay "It's a multiple of five-minutes, yo."
+# The */5 syntax specifies a multiple of 5 minutes
+# */5 9-16 * 1-5,9-12 1-5 env DISPLAY=:0 xcowsay "It's a multiple of five-minutes, yo."
+
+# Use gentoo's glsa-check command to check whether your system is affected by known security issues.
+# (I assume glsa stands for "Gentoo Linux Security [Advisory|Auditor|Assfuck|Atcetera(lol)]")
+glsa-check --list --verbose
+
+# Holy woah! The WitchCraft Compiler Collection!
+# Reversing something? Don't decompile... unlink!
+# :D
+git clone https://github.com/endrazine/wcc
+
+# Grep for binary strings!
+emerge -av bgrep
+
+# Mount partitions inside a disk image
+DISKIMG="disk.img"
+MOUNTPOINT="/mnt/misc"
+sudo fdisk -lu "$DISKIMG"
+# Find the start value of the partition you want to mount, e.g...
+start="40"
+sudo mount -o loop,offset=$((start * 512)) "$DISKIMG" "$MOUNTPOINT"
+
+# Compile C to llvm intermediate "IR" code
+f=example && clang -Os -S -emit-llvm "${f}.c" -o "${f}.ll"
+# Compile llvm IR code to x86_64 assembly
+f=example && llc -O3 "${f}.ll" -march=x86-64 -o "${f}-x86-64.s"
+# Compile llvm IR code to x86 assembly
+f=example && llc -O3 "${f}.ll" -march=x86 -o "${f}-x86.s"
+# Compile llvm IR code to ARM assembly
+f=example && llc -O3 "${f}.ll" -march=arm -o "${f}-arm.s"
+
+# gvfs seems to use gio under the hood, and weirdly, the gio command is just as nice!
+# gvfs versions
+gvfs-copy "sftp://turing/home/jason/.bashrc" turing-bashrc
+gvfs-ls   "sftp://turing/home/jason/Desktop/"
+# gio versions
+gio cat   "sftp://turing/home/jason/.bashrc"
+gio list  "sftp://turing/home/jason/Desktop/"
+
+# Force ssh to allocate us a tty even if it normally wouldn't b/c stdin isn't a terminal
+ssh -t root@jaynes bleed
+
+# Babel: Get up and running quickly
+npm install -g babel-cli babel-eslint babel-preset-env
+# And then
+babel --presets env example.js
+# Or to run without the option:
+cat >> ~/.babelrc << EOF
+{
+  "presets": ["env"]
+}
+EOF
+babel example.js
+
+# ESLint: How to use it:
+# Generate a config file:
+npm install -g babel-eslint
+eslint --init
+eslint example.js # That's it!
+
+# SQUID!
+#
+# Add this to the section where it says
+# INSERT YOUR OWN RULE(S) HERE.
+acl my_house src <your_public_ip>/32
+http_access allow my_house
+# Optionally, can change...
+http_port 3128 # to...
+http_port 6969 # or whatever
+# And I did this just to be safe, but it's probably not necessary.
+visible_hostname <your_hostname>
+
+# Home security webcams: Watch what's going on from outside
+turingr
+concatenate-streams 8080 8000 # turing terminal 1
+webcam stream                 # turing terminal 2
+vlc http://turingr:8080       # shannon
+
+# The custom config file option that saved my ass
+# by letting me recover my latex files, even
+# though latex files have no magic number.
+sudo foremost -v -d -q -c foremost.conf -i /dev/sda5 -o /run/media/jason/Butter/recovered/
+# Using a foremost.conf containing only this line:
+#	tex	y	100000   ?documentclass			?end?document?
+
+# As of 20170708, this is the proper strategy for
+# unfucking texmaker under the hidpi settings.
+export QT_AUTO_SCREEN_SCALE_FACTOR=0
+export QT_SCALE_FACTOR=2
+
+# Use linkchecker to check for broken links on an arbitrary website :)
+linkchecker https://pants.com
+linkchecker https://meatspin.com
