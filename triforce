@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Oldfags automate triforce ;)
+
+# OOOX      # This is the general form of the pattern,
+# OOXX      # where X="$FORCE $SPACE ", and O="$SPACE $SPACE ",
+# OXXX      # or rather O="$FORCE $SMALL $SMALL ", which is
+# XXXX      # slightly better when the n-forces get large
+
+SPACE="ctrl+shift+u 2 0 0 c space space"
+FORCE="ctrl+shift+u 2 5 b 2 space"
+SMALL="ctrl+shift+u 2 0 0 9 space"  # Unicode thin space
+
+triforce_win () {
+    n="$1"
+    cmd="xdotool key "
+    for row in $(seq 1 $n); do
+        for col in $(seq 1 $n); do
+            if [[ $col < $((n - row + 1)) ]]; then
+                # Canonical way is cmd+="$SPACE $SPACE ", but
+                # that begins to lean for very large n-forces
+                cmd+="$SPACE $SPACE "
+                # 
+                # Let's try this:
+                # cmd+="$SPACE $SMALL $SMALL "
+                # Nope, that sucks.
+                # Woot! Best so far:
+                # cmd+="$SMALL $SMALL $SMALL "
+                # 
+                # Alright, that one got worse after a chromium update... trying again
+                # Hey! This one is perfect now :D
+                # cmd+="$SPACE $SMALL $SMALL "
+                # cmd+="$SPACE $SMALL $SMALL "
+            else
+                cmd+="$FORCE $SPACE "
+            fi
+        done
+        cmd+="Return "
+    done
+    $(echo "$cmd")
+}
+
+size="$1"
+triforce_win "${size:-3}"

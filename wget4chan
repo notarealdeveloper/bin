@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# A silly script to download all the media from an arbitrary 4chan thread.
+# Used primarily for something commonly referred to as "the lols."
+
+URL="$1"
+DESTDIR="${URL##*/}"
+[[ -d "$DESTDIR" ]] || mkdir "$DESTDIR"
+cd "$DESTDIR"
+wget -O 4chan.html "$URL"
+# wget --no-clobber $(cat 4chan.html | grep -o 'i.4cdn.org[^"]*[^s]\.[^"]*' | uniq)
+# wget --no-clobber $(cat 4chan.html | grep -Po 'is.4chan.org[^"]+' | uniq)
+
+wget --no-clobber $(cat 4chan.html | grep -Po 'i.4cdn.org[^"]+[^s][.][^"]+' | uniq)
+
+# This works too.
+# cat 4chan.html | grep -Poi '(?<=href=.)[^"]+[.](png|gif|jpe?g|webm)[^"]*' | sed -r 's@^//@@g' | while read f; do curl -O "$f" & done
+
+rm 4chan.html
+xcowsay "Content is now legion. Enjoy!"
