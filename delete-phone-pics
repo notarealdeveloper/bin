@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Colors
+bla='\033[01;30m' red='\033[01;31m' gre='\033[01;32m' yel='\033[01;33m' blu='\033[01;34m'
+pur='\033[01;35m' cya='\033[01;36m' gra='\033[01;37m' whi='\033[01;39m' end='\033[00m'
+die   () { printf "${red}ERROR${whi}: ${1}${end}\n"; exit 1;  }
+log   () { printf "${blu}[${whi}*${blu}]${whi} ${1}${end}\n"; }
+
+delete_phone_pics() {
+        # Shouldn't have to do this every time, but the next line will find where busybox is installed for us. For now, we can just hardcode.
+        # adb shell 'dirname $(find /su/ /system/ /sbin/ -maxdepth 2 -name busybox 2>/dev/null)'
+        # BB="/su/xbin"
+        # Nevermind. We can just call busybox directly! problem solved ;)
+        adb shell busybox find /sdcard/stuff/neo/ -name "*.png" -delete
+        adb shell busybox find /sdcard/stuff/neo/ -name "*.jpg" -delete
+        adb shell busybox find /sdcard/stuff/neo/ -name "*.gif" -delete
+        adb shell busybox find /sdcard/stuff/neo/ -name "*.mp4" -delete
+        # adb shell \
+        # Had to add su -c after the update to Android Nougat
+        adb shell su -c \
+            am broadcast \
+            -a android.intent.action.MEDIA_MOUNTED \
+            -d file:///mnt/sdcard
+}
+
+# Clean recycle bin if asked
+if [[ "$1" == '-c' ]]; then
+    log "Got -c flag: Cleaning file manager recycle bin"
+    adb shell rm -r /sdcard/.estrongs/recycle/*
+    adb shell rm -f /sdcard/Pictures/Screenshots/.escheck.tmp
+    adb shell rm -f /sdcard/DCIM/Camera/.escheck.tmp
+fi
+
+printf "${red}*** ${blu}HEY! ${whi}Are you sure you want to delete all phone pics in /sdcard/stuff/neo/ (${gre}y${whi}/${red}n${whi})?: "
+read answer
+if [[ "$answer" == 'y' || "$answer" == 'Y' ]]; then
+    log "Alright, deleting phone pictures."
+    delete_phone_pics
+else
+    log "Not doing anything then. Come back when you've made up your mind."
+    exit 1
+fi
+
