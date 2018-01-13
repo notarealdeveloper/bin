@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# DEPENDS: xdotool, getresolution, getdistro
+
+# If we bind this to a particular key combination, it lets us close
+# that obnoxious little download bar in chrome without the mouse. ;)
+# You'll definitely need to edit this for your screen size, cuz
+# we basically need to hard code the location of the button on the screen.
+
+# save mouse location
+eval $(xdotool getmouselocation 2>/dev/null | grep -Po "x:\d+ y:\d+" | sed 's/:/=/g;s/ /;/g')
+
+# This is the position of the close button. change it if needed.
+# 
+# Added the conditional for HiDpi
+# Detect dpi using `xrdb -query | head -n 1 | cut -f 2`
+# xdotool mousemove 2523 1350
+
+# Used to have this,
+# but it seems that chromium started computing the dpi incorrectly.
+# Not sure why.
+# That must be why the mouse is small in chromium.
+#
+#dpi="$(xrdb -query | head -n 1 | cut -f 2)"
+#if [[ $dpi == 192 ]]; then
+#    buttonpos=(2523 1350)     # Something weird happened.
+#else
+#    buttonpos=(1348 722)
+#fi
+
+if [[ $(getresolution) == '1280x720' ]]; then
+    buttonpos=(1263 672)
+elif [[ $(getresolution) == '2560x1440' ]]; then
+    buttonpos=(2523 1350)
+else
+    # Hack. Mint's at low DPI. This helps.
+    if [[ $(getdistro) == 'mint' ]]; then
+        buttonpos=(1342 722)
+    else
+        xcowsay "Don't know what's going on. Fix your $(basename "$0") script."
+    fi
+fi
+
+# raise chromium to foreground, move mouse, and close the download bar
+xdotool windowraise $(xdotool search --onlyvisible --name "chromium|chrome" | tail -n 1) &&
+xdotool mousemove ${buttonpos[*]} &&
+xdotool click 1 &&
+# restore mouse position
+xdotool mousemove "$x" "$y"
