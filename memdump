@@ -1,0 +1,25 @@
+#!/bin/bash
+
+[[ -z "$1" ]] && echo "usage: $(basename $0) <progname>" && exit 1
+
+progname="$1"
+tempdir="$(mktemp -d)"
+outfile="$HOME/Desktop/$progname.memdump"
+
+rm -rf "$tempdir" "$outfile"
+mkdir -p "$tempdir"
+
+# Note: Using pgrep instead of pidof seems to return
+# more pids for large applications like chromium.
+# They both seem to work, though.
+for pid in $(pgrep "$progname"); do
+    dest="$tempdir/dump-$pid"
+    sudo gdb -ex "attach $pid"  \
+             -ex "gcore $dest"  \
+             -ex detach         \
+             -ex quit           \
+             &> /dev/null
+done
+
+for f in "$tempdir"/dump*; do cat "$f" >> "$outfile"; done
+rm -rf "$tempdir"

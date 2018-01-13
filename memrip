@@ -1,0 +1,49 @@
+#!/usr/bin/python3
+
+import os
+import re
+from random import randint
+
+# progname = 'chromium'
+progname = 'chrome'     # called chrome on gentoo.
+os.system("memdump %s" % progname)
+f = open('%s.memdump' % progname, 'br')
+chaos = f.read()
+f.close()
+
+files = []
+
+# JPG
+begjpg = b'\xff\xd8\xff[\xe0-\xe1]'
+endjpg = b'\xff\xd9'
+files += re.findall(begjpg +   (b'.*?' + endjpg), chaos, re.S)
+files += re.findall(begjpg + 2*(b'.*?' + endjpg), chaos, re.S)
+
+# PNG
+begpng = b'\x89\x50\x4E\x47'
+endpng = b'\x49\x45\x4E\x44\xAE\x42\x60\x82'
+# files += re.findall(begpng + b'.*?' + endpng, chaos, re.S)
+
+# FLV (fucked)
+begflv = b'\x46\x4C\x56\x01'
+endflv = b'\x17\x02\x00\x00\x00\x00\x00\x00\x10'
+# files += re.findall(begflv + b'.*?' + endflv, chaos, re.S)
+# files += re.findall(begflv + b'.*', chaos, re.S)
+
+# MP4
+begmp4 = b'\x00\x00\x00[\x20-\x29]\x66\x74\x79\x70\x6D\x70\x34\x32'
+endmp4 = b'\x66\x72\x65\x65' # the word 'free'
+# endmp4 = b'\x69\x6C\x64\x20\x33\x33[\x29]\x00'
+# files += re.findall(begmp4 + b'.*?' + endmp4, chaos, re.S)
+# files += re.findall(begmp4 + b'.*', chaos, re.S)
+
+# Write the files in their own directory
+os.mkdir('ripped')
+os.chdir('ripped')
+
+for file in files:
+    f = open(str(randint(0,1e6)), 'bw')
+    f.write(file)
+    f.close()
+
+os.chdir('..')
