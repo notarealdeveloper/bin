@@ -1,0 +1,34 @@
+#!/bin/bash
+
+echo "For the love of god, don't run me. Just read me."
+exit 0
+
+# The story of whatever the hell this is:
+
+# I originally wrote this as a long shell one-liner one day,
+# and after realizing it was completely out of control,
+# I copied it into a script and added a bit of option processing.
+
+# However, its origins as an intentionally ridiculous one-liner
+# account for the weird style in which it's written.
+
+# Now since I wrote it a few years ago, it appears to have stopped working.
+# I'm gonna keep it around until I have the time to figure out exactly
+# why it used to work, and why it doesn't anymore, because that suggests
+# it may have been relying on some odd undefined behavior of the shell that
+# disappeared or somehow changed over the past 3 or 4 years. Story ongoing...
+
+v=&&#syntaxfuck!:D
+usage(){ echo "Usage: $(basename $0) [-h|-v]" && exit 1; }&&
+while test "$1";do case "$1" in -h)usage&&lolwut;;-v)v=1;;esac;shift;done&&
+# somehow we're still alive...
+declare -A sums=() &&
+# build a table of md5sums for everything below the current directory.
+for f in $(find . -type f); do
+    hash="$(md5sum "$f" | cut -d' ' -f1)" &&
+    sums["$hash"]+="$f "
+done &&
+# prints "num-instances : hash : instance-names"
+for hash in ${!sums[*]}; do
+    printf "$(echo "${sums[$hash]}" | wc -w) : "${hash}" : "${sums[$hash]}"\n"
+done | sort -k1 -r -k2 | if [[ ! "$v" ]]; then sed /^1/d; else cat; fi
