@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# DEPENDS: xrandr
+
+# Fixes a minor imperfection when I'm using
+# my TV as a monitor for my home server.
+# God I love linux. :P
+
+if [[ "$HOSTNAME" != "Turing" ]]; then
+    echo "$(basename $0): This script is only intended for Turing."
+    exit 1
+fi
+
+xrandr --output HDMI-0 --set underscan on
+xrandr --output HDMI-0 --set "underscan hborder" 40 --set "underscan vborder" 25
+
+# Probably don't do this, but maybe do.
+# xrandr --output HDMI-0 --set "audio" on
