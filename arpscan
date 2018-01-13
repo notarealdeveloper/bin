@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# DEPENDS: arp-scan
+
+blu='\033[01;34m'; whi='\033[01;39m'; end='\033[00m';
+
+log () { printf "${blu}[${whi}*${blu}]${whi} ${1}${end}\n"; }
+
+# Not strictly necessary, but gives us a log message.
+get_device_ip() {
+    ip -4 -o addr show "${1}" 2>/dev/null | sed -r 's@.*inet ([^/]+).*@\1@'
+}
+
+# NOTE: The "macs" command here is optional.
+# If it exists, it should return a set of lines of the form
+# 
+# mac_address  alias_for_mac_address
+#
+# e.g.,
+#
+# ff:ee:dd:cc:bb:aa  yourmom.router
+# ff:ee:dd:cc:bb:ab  yourmom.laptop
+# 
+# or whatever naming scheme you like
+# 
+mac_filter() {
+    # Take input from </dev/stdin
+    # Build a fake file of substitution commands and do a search and replace with each.
+    sed </dev/stdin -f <(macs | sed -r -e "s@(^|$| )@/@g" -e "s@^@s@" -e "s@.*@&g@")
+}
+
+# Place the preferred device first
+
+# Used to use this when I had both a wifi and ethernet card
+#ip=
+#for dev in wlo1; do
+#    ip=$(get_device_ip "$dev")
+#    [ $ip ] && break
+#done
+
+# More robust than previous way, & doesn't require ifconfig.
+dev="$(ls /sys/class/net/ | grep -Po '^(wl|en)[\w]+' | sort | head -n 1)"
+ip=$(get_device_ip "$dev")
+
+# DEPRECATED: Instead of this kludgey (pseudo-)subnet
+# parameter, we're now passing the --localnet option
+# to arp-scan to scan the whole local network.
+### subnet=${ip%.*}.0/24
+# log "Using device: $dev ($ip)"
+
+if $(which macs &>/dev/null); then
+    tabs 24
+    sudo arp-scan -I "$dev" --localnet $@ | mac_filter
+else
+    sudo arp-scan -I "$dev" --localnet $@
+fi
