@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# A nice little utility function to help other scripts
+# quickly determine whether or not we're in HiDPI mode.
+
+python -c 'import tkinter; tk = tkinter.Tk(); width = tk.winfo_screenwidth(); scale = str(width)[0]; print(scale)'
