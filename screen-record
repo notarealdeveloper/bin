@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# See if we're running so we can toggle ourselves
+is_running() {
+
+    # ps aux | grep -v grep | grep -c ffmpeg
+
+    num_running="$(ps aux | grep -v grep | grep -c 'ffmpeg.*x11grab.*')"
+
+    # echo "num_running == $num_running"
+
+    if (( num_running == 0 )); then
+        echo "Found only self. Proceeding."
+        return 1
+    else
+        echo "Found previous instance."
+        return 0
+    fi
+}
+
+if is_running; then
+    echo "Shutting previous instance down."
+    killall ffmpeg
+    # The killall ffmpeg part is a kludge, but hopefully
+    # we can live with it until we can find a better way.
+    #is_running && { echo "Still running... wtf?" && exit 1; }
+    #is_running || { echo "All is well. Dying happy." && exit 0; }
+    echo "Dying happy"
+    exit 0
+fi
+
+usage() {
+    cat << EOF
+USAGE
+    $(basename $0) [OPTIONS] [outfile]
+OPTIONS
+    -e, --eavesdrop         Set eavesdrop mode
+    -h, --help              Show this help
+EOF
+    exit 1
+}
+
+set_eavesdrop_mode() {
+    outdir="${HOME}"
+}
+
+outdir="."
+outfile="$(date +%Y%m%d-%H%M%S).mp4"
+
+while [[ -n "$1" ]]; do
+    case "$1" in
+        -e|--eavesdrop)     set_eavesdrop_mode;;
+        -h|--help)          usage;;
+        -*)                 echo "Unrecognized option: ${1}" && exit 1;;
+        *)                  outfile="$1";;
+    esac
+    shift
+done
+
+screen_record_with_sound_ffmpeg_original() {
+    # This works great!
+    # I had to make sure ffmpeg had the xcb USE flag though or else it complained about not having x11grab and didn't work.
+
+    # Note: If you change this command, then go change the regex at the top too.
+
+    ffmpeg -video_size $(getresolution) -framerate 30 -f x11grab -i :0 -f alsa -i hw:1,0 -c:v mpeg4 -q:v 0 -movflags +faststart \
+        "${outdir}/${outfile}"
+}
+
+
+screen_record_with_sound_gst() {
+    # This doesn't work very well.
+
+    DATE="$(date +%Y%m%d-%H%M%S)"
+    FILE="${DATE}.webm"
+
+    gst-launch-0.10 ximagesrc ! ffmpegcolorspace ! queue ! vp8enc quality=10 speed=2 \
+        ! mux. alsasrc ! audio/x-raw-int ! queue ! audioconvert \
+        ! vorbisenc ! mux. webmmux name=mux \
+        ! filesink location="${FILE}"
+
+}
+
+screen_record_with_sound_gst2() {
+    gst-launch-0.10 ximagesrc ! ffmpegcolorspace ! queue ! vp8enc quality=10 speed=2 ! mux. alsasrc ! audio/x-raw-int ! queue ! audioconvert ! vorbisenc ! mux. webmmux name=mux ! filesink location=screencast.webm
+}
+
+screen_record_hofstadter() {
+    # Oh my fucking lord. I love this. XD
+    gst-launch-1.0 ximagesrc use-damage=0 ! video/x-raw,framerate=30/1 ! videoscale method=0 ! video/x-raw,width=640,height=480 ! ximagesink
+}
+
+# Give us some kind of alert so we don't trigger this by accident.
+xcowsay -r 100 --config=<(echo 'min_display_time = 100') --at=200,200 "Ready to start recording"
+
+screen_record_with_sound_ffmpeg_original
+
+# screen_record_with_sound_gst
+# screen_record_with_sound_gst2
+# screen_record_hofstadter
