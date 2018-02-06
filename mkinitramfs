@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# http://wiki.gentoo.org/wiki/Custom_Initramfs
+
+[[ "${EUID}" != 0 ]] && echo "Need to be root, yo." && exit 1
+[[ -d /usr/src/initramfs ]] && rm -rv /usr/src/initramfs
+
+root=$(mount | grep 'on / ' | cut -f1 -d' ' | cut -d'/' -f3)
+
+# Make device nodes and such
+mkdir -pv /usr/src/initramfs/{bin,dev,etc,lib,lib64,mnt/root,proc,root,sbin,sys}
+cp -av /dev/{null,console,tty,"$root",sda1,sda5} /usr/src/initramfs/dev/
+
+################################################################
+
+# Busybox! (Clean up this section once you get it working)
+# Get it if we don't already have it
+which busybox &>/dev/null || pacman -S busybox
+
+# (0) Best option: build busybox statically
+# In busybox src directory...
+pushd /usr/src/busybox
+yes "" | make oldconfig
+LDFLAGS="--static" make -j8
+ldd busybox
+cp -av ./busybox /usr/src/initramfs/bin/busybox
+popd >/dev/null
+
+pushd /usr/src/initramfs/bin
+for f in $(./busybox --list); do ln -sv busybox "$f"; done
+popd >/dev/null
+
+# Last three lines are from ldd `which busybox`
+#cp -av /bin/busybox /usr/src/initramfs/bin/busybox
+#cp -avL /usr/lib/libm.so.6 /usr/src/initramfs/lib/
+#cp -avL /usr/lib/libc.so.6 /usr/src/initramfs/lib/
+#cp -avL /lib64/ld-linux-x86-64.so.2 /usr/src/initramfs/lib64/
+
+################################################################
+
+cd /usr/src/initramfs/
+
+cat > /usr/src/initramfs/init << _EOF_
+#!/bin/busybox sh
+
+# I don't think this is necessary
+export PATH=/bin:/sbin
+alias ll='ls -l'
+alias x='exit'
+
+# Mount the /proc and /sys filesystems.
+mount -t proc  none /proc
+mount -t sysfs none /sys
+
+# Do your stuff here.
+echo 'Hello from the initramfs!'
+
+# Mount the root filesystem.
+mount -o ro -t ext4 /dev/${root} /mnt/root
+
+# Show me /proc/cmdline
+# cat /proc/cmdline
+
+if [ \`cat /proc/cmdline | grep -c waffles\` != 0 ]; then
+    echo 'Magic found on kernel command line!'
+    echo 'Loading atkbd kernel module'
+    modprobe atkbd
+    echo 'Here, have a shell'
+    /bin/sh
+    echo 'Alright! Moving on...'
+fi
+
+# Clean up.
+umount /proc
+umount /sys
+
+# Boot the real thing.
+exec switch_root /mnt/root /sbin/init
+_EOF_
+
+chmod +x /usr/src/initramfs/init
+
+
+# Let's see if we can throw some modules in there!
+mkdir -pv /usr/src/initramfs/lib/modules/$(uname -r)/
+cp -rv /lib/modules/$(uname -r)/kernel \
+       /usr/src/initramfs/lib/modules/`uname -r`/
+
+# Time to package it up!
+# Note: We can also just put /usr/src/initramfs in our kernel INITRAMFS_SOURCE config
+
+# Get cpio if we don't already have it
+which cpio &>/dev/null || pacman -S cpio
+
+# First one from Gentoo wiki, second one from Arch's mkinitcpio script
+pushd /usr/src/initramfs
+cpio_opts=('-0' '-o' '-H' 'newc' '--quiet')
+find . -print0 | cpio --null -ov --format=newc \
+    | gzip -9 > /boot/jwnix/initramfs-mine.img
+#find . -print0 | LANG=C bsdcpio "${cpio_opts[@]}" | gzip -9 > /boot/jwnix/initramfs-mine.img
+popd >/dev/null
