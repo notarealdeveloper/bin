@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Full system update script for Gentoo, Arch, and Debian
+
+_ask=
+
+# Generally we only need to be cautious for Gentoo.
+# For the rest, if I call this instead of calling
+# the package manager directly, it always just
+# means "do everything we need for the update."
+while [[ -n "$1" ]]; do
+    case "$1" in
+        --ask | -a)         _ask=a;;
+        -*)                 echo "Unknown option "$1" && exit 1";;
+    esac
+    shift
+done
+
+distro=$(source /etc/os-release && echo $ID)
+
+if [[ "$distro" == "gentoo" ]]; then
+    sudo emerge --sync                              &&
+    sudo emerge -uND${_ask}v --with-bdeps=y @world  &&
+    sudo emerge --depclean                          &&
+    sudo revdep-rebuild
+
+elif   [[ "$distro" == "arch" ]]; then
+    pacaur -Syu --noconfirm --noedit --color auto
+
+elif [[ "$distro" == "debian" || "$distro" == "ubuntu" || "$distro" == "mint" ]]; then
+    sudo apt-get update &&
+    sudo apt-get --yes --force-yes upgrade
+
+else
+    echo "What distro are you using?" &&
+    exit 1
+
+fi
