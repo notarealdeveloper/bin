@@ -1,0 +1,109 @@
+#!/usr/bin/python3
+
+import os
+import re
+import sys
+
+# usage
+# =====
+# suffix -a mp4 <files>
+# suffix -d mp4 <files>
+# suffix -c jpeg:jpg <files>
+
+def parse_command_line():
+
+    import argparse
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-a', '--add', type = str, help = 'Add suffix to all filenames')
+
+    parser.add_argument('-d', '--delete', type = str, help = 'Delete suffix from all filenames')
+
+    parser.add_argument('-c', '--change', type = str, help = 'Colon separated pair old:new')
+
+    # inspired by sed
+    parser.add_argument('-i', '--inline', action = 'store_true', default = False, help = 'Actually rename the files on disk')
+
+    parser.add_argument('filenames', nargs = '+', type = str, help = 'Filenames to change')
+
+    config = parser.parse_args()
+
+    return config
+
+def die(msg):
+    print("{0}ERROR{1}: {2}{3}".format('\033[01;31m', '\033[01;39m', msg, '\033[00m'))
+    sys.exit(1)
+
+def ensure_dot(suffix):
+    return suffix if suffix[0] == '.' else '.' + suffix
+
+def ensure_no_dot(suffix):
+    return ensure_dot(suffix)[1:]
+
+def add_suffix(filename, suffix):
+    suffix = ensure_dot(suffix)
+    return filename + suffix
+
+def delete_suffix(filename, suffix):
+    """delete arbitrary regex suffixes"""
+    suffix = ensure_no_dot(suffix)
+    return re.sub('[.]{0}$'.format(suffix), '', filename)
+
+def change_suffix(filename, suffix):
+    """change suffixes matching some regex to a new value"""
+    suffixes = suffix.split(':')
+    assert len(suffixes) == 2
+    oldsuffix, newsuffix = suffixes
+    oldsuffix = ensure_dot(oldsuffix)
+    newsuffix = ensure_dot(newsuffix)
+    if re.search(oldsuffix, filename):
+        filename  = delete_suffix(filename, oldsuffix)
+        filename  = add_suffix(filename, newsuffix)
+    return filename
+
+def _get_requested_verb(config):
+    if [config.add, config.delete, config.change].count(None) < 2:
+        die('Multiple operations specified.')
+
+    if [config.add, config.delete, config.change].count(None) > 2:
+        die('No operation specified.')
+
+    # get the operation as a string
+    operation = [k for k in ('add', 'delete', 'change') if config.__dict__[k] != None].pop()
+
+    return operation
+
+config = parse_command_line()
+
+# figure out whether we're adding, deleting, or changing,
+# and return the answer as a string
+operation = _get_requested_verb(config)
+
+# get the function that does the thing described by operation
+requested_suffix_op = globals()[operation + '_suffix']
+
+# get the argument the user passed to that operation
+# on the command line, e.g., 'txt', 'mp[34]', etc.
+op_arg = config.__dict__[operation]
+
+if config.inline == False:
+
+    # act like sed: just print the changes
+    for old_filename in config.filenames:
+        new_filename = requested_suffix_op(old_filename, op_arg)
+        print(old_filename, new_filename)
+
+elif config.inline == True:
+
+    # actually rename the files
+
+    # make sure all files exist, and die if any don't exist
+    for filename in config.filenames:
+        if not os.path.exists(filename):
+            die('file %s does not exist' % filename)
+
+    for old_filename in config.filenames:
+        new_filename = requested_suffix_op(old_filename, op_arg)
+        os.rename(old_filename, new_filename)
+
