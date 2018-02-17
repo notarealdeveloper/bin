@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# For cleaning up the android after an adb pull
+
 # Colors
 bla='\033[01;30m' red='\033[01;31m' gre='\033[01;32m' yel='\033[01;33m' blu='\033[01;34m'
 pur='\033[01;35m' cya='\033[01;36m' gra='\033[01;37m' whi='\033[01;39m' end='\033[00m'
