@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Should probably make these into scripts and not just functions...
+
+do_hex() {
+    local args="$@"
+    if [[ -z ${args[0]} ]]; then
+        args=($(cat /dev/stdin))
+    fi
+    argstr="$(echo "${args[@]}" | sed -r -e 's@ @,@g' -e 's@([0-9]+)@hex(\1)@g')"
+    python3 <<< "print(${argstr})"
+}
+
+do_unhex() {
+    local hexargs=();
+    local args="$@"
+    local i=0;
+    if [[ -z ${args[0]} ]]; then
+        args=($(cat /dev/stdin))
+    fi
+    for arg in ${args[@]}; do
+        if [[ ${arg:0:2} != '0x' ]]; then
+            hexargs[$i]="0x${arg}"
+        else
+            hexargs[$i]="${arg}"
+        fi
+        ((i++))
+    done
+    argstr="$(echo "${hexargs[@]}" | sed -r 's@ @,@g')"
+    # echo "${hexargs[@]}"
+    # echo "$argstr"
+    python3 <<< "print(${argstr})"
+}
+
+ONAME="$(basename $0)"
+
+if   [[ $ONAME == 'hex' ]]; then
+    do_hex "$@"
+elif [[ $ONAME == 'unhex' ]]; then
+    do_unhex "$@"
+else
+    echo "Script called with \$ONAME == ${ONAME}. What are you trying to do?"
+fi
