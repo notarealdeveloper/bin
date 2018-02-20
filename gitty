@@ -1,0 +1,133 @@
+#!/bin/bash
+
+source ~/.bashrc
+
+cattail_self() {
+    cat "$0" | pcregrep -M '^#{10,}\n(.|\n)*' | tail -n +3
+}
+
+if [[ -z "$1" ]]; then
+    cattail_self
+    exit 0
+fi
+
+# Otherwise:
+cattail_self | grep --color=auto -Pi "$@"
+
+exit 0
+
+############################################
+
+# Non-git
+wget http://freeworld.thc.org/releases/secure_delete-3.1.tar.gz                 # timeless-ish secure-delete. last released in 2003
+wget http://search.cpan.org/~kbaucom/Term-Animation-2.6/lib/Term/Animation.pm   # perl term-animation
+wget http://www.robobunny.com/projects/asciiquarium/asciiquarium.tar.gz         # asciiquarium
+wget http://robobunny.com/projects/weatherspect/weatherspect_v1.11.tar.gz       # weatherspect
+
+# Core
+git clone git://sourceware.org/git/binutils.git
+git clone git://sourceware.org/git/glibc.git
+git clone git://sourceware.org/git/gcc.git
+git clone git://git.sv.gnu.org/coreutils
+git clone git://git.sv.gnu.org/bash.git
+
+# Embedded
+git clone git://git.busybox.net/busybox
+git clone git://repo.or.cz/tinycc.git tcc
+git clone git://git.busybox.net/uClibc uclibc
+git clone https://github.com/leto/asmutils
+
+# Cinnamon
+git clone https://github.com/linuxmint/cjs.git
+git clone https://github.com/linuxmint/nemo.git
+git clone https://github.com/linuxmint/muffin.git
+git clone https://github.com/linuxmint/cinnamon.git
+git clone https://github.com/linuxmint/cinnamon-desktop.git
+git clone https://github.com/linuxmint/cinnamon-session.git
+git clone https://github.com/linuxmint/cinnamon-control-center.git
+git clone https://github.com/linuxmint/cinnamon-settings-daemon.git
+git clone https://github.com/linuxmint/cinnamon-menus.git
+git clone https://github.com/linuxmint/nemo-extensions.git
+
+# Styles and Themes
+git clone https://github.com/numixproject/numix-icon-theme
+git clone https://github.com/numixproject/numix-icon-theme-circle.git
+git clone https://github.com/zagortenay333/numix-cinnamon               # I think this is the cinnamon css theme.
+
+# Other
+git clone git://git.openbox.org/dana/openbox.git
+git clone https://github.com/brndnmtthws/conky.git
+git clone https://git.torproject.org/tor.git
+git clone https://github.com/videolan/vlc.git
+
+# For distro customization
+git clone git://projects.archlinux.org/abs.git
+
+# OpenSesame
+git clone https://github.com/smathot/OpenSesame opensesame
+git clone https://github.com/smathot/QProgEdit qprogedit
+git clone https://github.com/expyriment/expyriment.git
+git clone https://github.com/dschreij/media_player_vlc.git              # media_player_vlc plugin
+git clone git://git.videolan.org/vlc/bindings/python.git vlc-python     # vlc python bindings
+
+# Photocrypt project: For steg and unsteg
+git clone https://github.com/mdbct/photocrypt.git
+
+# Awesome ROP demos!
+git clone https://github.com/finallyjustice/security.git
+
+# OCR: Optical character recognition
+git clone https://github.com/tesseract-ocr/tesseract.git
+
+# Elasticsearch search engine
+git clone https://github.com/elastic/elasticsearch.git
+
+# A keylogger
+git clone https://github.com/gsingh93/simple-key-logger.git
+
+# That vdpau vaapi intel translation thing that arch has but gentoo doesn't
+# Build this with:
+# cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr && make && sudo make install
+# (Commands stolen from the archlinux PKGBUILD in /var/abs/community/libvdpau-va-gl/PKGBUILD)
+git clone https://github.com/i-rinat/libvdpau-va-gl.git
+
+# untrunc: for repairing mp4 files without the moov atom
+git clone https://github.com/ponchio/untrunc
+
+# xcowsay
+git clone https://github.com/nickg/xcowsay
+
+# fbcat lets us take screenshots of a tty via the framebuffer
+git clone https://github.com/jwilk/fbcat
+
+# xclip
+git clone https://github.com/milki/xclip/
+
+# Holy fucking woah: The WitchCraft Compiler Collection!
+# Reversing something? Don't decompile... unlink!
+git clone https://github.com/endrazine/wcc
+
+# This is amazing. 
+# cd into a Linux kernel source tree, run one command, and get a running QEMU VM with BusyBox.
+https://github.com/cirosantilli/runlinux
+
+# Get perl6 rakudo
+V="rakudo-star-2017.01"
+wget "https://rakudo.perl6.org/downloads/star/${V}.tar.gz"
+tar xvf "${V}.tar.gz"
+cd "${V}"
+sudo perl Configure.pl --gen-moar --prefix /opt/"${V}"
+sudo make install
+
+# three.js!
+git clone https://github.com/mrdoob/three.js
+
+# clientjs
+git clone https://github.com/jackspirou/clientjs
+
+# Tearable cloth omg this is awesome
+git clone https://github.com/dissimulate/Tearable-Cloth
+
+# A nice color picker by the same guy.
+# Change his code so that it changes the color of the parent element by default.
+git clone https://github.com/dissimulate/Picker
