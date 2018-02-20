@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Tends to be more reliable than geoiplookup
+
+# https://freegeoip.net/
+
+### Old aliases I used to use
+# alias geoip-city='geoiplookup -f /usr/share/GeoIP/GeoLiteCity.dat'
+# alias geoip-country='geoiplookup -f /usr/share/GeoIP/GeoIP.dat'
+# alias geoip='geoiplookup'
+
+[[ -z "$1" ]] && echo "USAGE: $(basename "$0") <ip>" && exit 1
+
+ip="${1}"
+# wget -q -O - https://freegeoip.net/csv/${ip}
+# wget -q -O - https://freegeoip.net/xml/${ip}
+# wget -q -O - https://freegeoip.net/json/${ip}
+# wget -q -O - https://freegeoip.net/xml/${ip} | xmllint --format -
+wget -q -O - https://freegeoip.net/json/${ip} | json_pp
