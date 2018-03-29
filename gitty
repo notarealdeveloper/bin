@@ -131,3 +131,13 @@ git clone https://github.com/dissimulate/Tearable-Cloth
 # A nice color picker by the same guy.
 # Change his code so that it changes the color of the parent element by default.
 git clone https://github.com/dissimulate/Picker
+
+# Some guy's corrections to the opencl-in-action book code.
+git clone https://github.com/jeremyong/opencl_in_action
+
+# This guy has fantastic MWEs for low-level x86 programming.
+git clone https://github.com/cirosantilli/x86-bare-metal-examples/
+
+# Holy shit... this is amazing.
+# Make an inception based object recognizer with tensorflow in like 5 minutes.
+git clone https://github.com/googlecodelabs/tensorflow-for-poets-2
