@@ -452,16 +452,6 @@ ndisasm <(printf "\xc9\xc3\xcf")
 # Remove those obnoxious copyright banners from a source code tree
 find . -type f -exec sed -i -z 's@/[*].*You should have received a copy.*USA[.\t ]*\n[\t ]*[*]/@@g' '{}' ';'
 
-# Getting a version of flashrom that can actually read your BIOS!
-# Have to git clone the fork of flashrom from chromium OS
-# This version will just fill ME-locked regions with 0xff, and show us the rest.
-# Thats more like it goddammit!
-git clone https://chromium.googlesource.com/chromiumos/third_party/flashrom
-cd flashrom && make
-# The build will fail on the first few tries, but the fixes are pretty obvious.
-# I just had to remove -Werror from the Makefile, and remove an #include of a nonexistent header
-# Once it builds, use ./flashrom -p internal -r bios.rom
-
 # Enable/disable thumbnailers in file manager
 # Open dconf-editor -> Search for thumbnailers -> Enable or disable all
 
@@ -475,11 +465,6 @@ watch 'dmesg | tail -35'
 journalctl -kf -n 35
 # Less tidy version of the above:
 sudo cat /dev/kmsg
-
-# Where to get the linux kernel git tree from, in order to send patches, etc.
-# Development trees are here: http://git.kernel.org/pub/scm/linux/kernel/git/
-git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-git clone git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
 
 # Change the ccache directory to a faster location than ~/.ccache
 export CCACHE_DIR=/<ramdisk-or-ssd>/ccache
@@ -619,9 +604,6 @@ ocrgui tesseract-gui ocrpdf
 
 # Fun with steganography
 photocrypt 
-
-# Damn good linux speech to text, not from chrome app store
-git clone https://github.com/andre-luiz-dos-santos/speech-app
 
 # Tool for launching commands on keystrokes: x11-misc/xbindkeys
 # Check this out and see how it works.

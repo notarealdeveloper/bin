@@ -70,10 +70,18 @@ git clone https://github.com/expyriment/expyriment.git
 git clone https://github.com/dschreij/media_player_vlc.git              # media_player_vlc plugin
 git clone git://git.videolan.org/vlc/bindings/python.git vlc-python     # vlc python bindings
 
+# Damn good linux speech to text, not from chrome app store
+git clone https://github.com/andre-luiz-dos-santos/speech-app
+
+# Where to get the linux kernel git tree from, in order to send patches, etc.
+# Development trees are here: http://git.kernel.org/pub/scm/linux/kernel/git/
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+
 # Photocrypt project: For steg and unsteg
 git clone https://github.com/mdbct/photocrypt.git
 
-# Awesome ROP demos!
+# Awesome ROP demos
 git clone https://github.com/finallyjustice/security.git
 
 # OCR: Optical character recognition
@@ -82,7 +90,17 @@ git clone https://github.com/tesseract-ocr/tesseract.git
 # Elasticsearch search engine
 git clone https://github.com/elastic/elasticsearch.git
 
-# A keylogger
+# Getting a version of flashrom that can actually read your BIOS!
+# Have to git clone the fork of flashrom from chromium OS
+# This version will just fill ME-locked regions with 0xff, and show us the rest.
+# Thats more like it goddammit!
+# The build will fail on the first few tries, but the fixes are pretty obvious.
+# I just had to remove -Werror from the Makefile, and remove an #include of a nonexistent header
+# Once it builds, use ./flashrom -p internal -r bios.rom
+git clone https://chromium.googlesource.com/chromiumos/third_party/flashrom
+cd flashrom && make
+
+# Keylogger MWE
 git clone https://github.com/gsingh93/simple-key-logger.git
 
 # That vdpau vaapi intel translation thing that arch has but gentoo doesn't
@@ -141,3 +159,7 @@ git clone https://github.com/cirosantilli/x86-bare-metal-examples/
 # Holy shit... this is amazing.
 # Make an inception based object recognizer with tensorflow in like 5 minutes.
 git clone https://github.com/googlecodelabs/tensorflow-for-poets-2
+
+# Vitaly Pavlenko's repo about how to be gay. I love this so much omg.
+git clone https://github.com/vpavlenko/so-gay
+
