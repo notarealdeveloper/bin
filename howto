@@ -835,3 +835,41 @@ export QT_SCALE_FACTOR=2
 # Use linkchecker to check for broken links on an arbitrary website :)
 linkchecker https://pants.com
 linkchecker https://meatspin.com
+
+# Use radare2 to generate call graphs of an unstripped binary!
+radare2 /bin/cat
+# ... start of radare2 ...
+# [0x00402427]> aa
+# [0x00402427]> afl
+# [0x00402427]> ag > b.dot
+# [0x00402427]> !xdot b.dot
+# The aa command collects information about the analyzed binary.
+# The afl command collects information about all the function call sites (addr, size, bbs, name).
+# Finally, the ag command outputs the graphviz representation of the collected data.
+# Note that we dumped the data in the file b.dot,
+# this example used the xdot software from the Radare2 prompt
+# but it can be done outside of the Radare2 shell (of course).
+
+# Speed up a video by 5x
+ffmpeg -i input.webm -filter:v "setpts=0.2*PTS" output.webm
+
+# Same as above, without dropping frames to achieve the result
+ffmpeg -i input.webm -r 16 -filter:v "setpts=0.2*PTS" output.webm
+
+# Prevent ssh from asking you to type "yes" on first run,
+# if you're in a context where p(A)*V(A) < p(B)*V(B),
+# where p(A) and V(A) are the probability and negative value
+# associated with being MITM'd (lol), V(B) is the pain in the
+# ass resulting from having to type "yes", and p(B) is, well, 1.
+ssh -o "StrictHostKeyChecking no" "${USER}@${IP}"
+
+# Tell ssh not to allocate a ptty even when stdin is not a tty,
+# so that it doesn't print a message saying it's gonna do that anyway.
+ssh -T "${USER}@${IP}"
+
+# Force pseudo-terminal allocation.
+# This can be used to execute arbitrary screen-based programs on a remote machine,
+# which can be very useful, e.g. when implementing menu services. Multiple -t options
+# force tty allocation, even if ssh has no local tty.
+ssh -t  "${USER}@${IP}"
+ssh -tt "${USER}@${IP}"
